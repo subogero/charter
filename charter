@@ -79,6 +79,7 @@ sub process_csv {
         labels => [],
         datasets => [],
     };
+    $i_color = 0;
     while (@{$table->[0]}) {
         push
             @{$data->{datasets}},
