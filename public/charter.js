@@ -33,6 +33,7 @@ var chart = new Chart(ctx, {
                 radius: 0,
             },
         },
+        tooltips: { mode: 'x' },
         animation: { duration : 0 },
         hover : { animationDuration : 0 },
         responsiveAnimationDuration: 0,
