@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Charter</title>
+<style>
+  * { font-family: monospace }
+  body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding:0;
+    overflow:hidden;
+  }
+  input { outline: none; border: 0px }
+</style>
+</head>
+
+<body>
+<div style="display:table; width:100%">
+<label for="path" style="display:table-cell; width:1px">/home/</label>
+<input type="text" id="path" autofocus="true"
+    style="display:table-cell; width:99%"
+    placeholder="Enter server path to file containing CSV data"
+></input>
+</div>
+
+<div>
+<canvas id="chart"></canvas>
+<script src="Chart.bundle.min.js"></script>
+<script src="charter.js"></script>
+</div>
+</body>
+
+</html>

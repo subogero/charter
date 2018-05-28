@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Mojolicious::Lite;
+use YAML::XS;
+use List::Util qw(min reduce);
+
+sub common_lead; sub color; sub read_csv; sub process_csv;
+
+get "/home/*path" => { path => '' } => sub {
+    my $c = shift;
+    my $path = $c->stash('path');
+    my $hit = common_lead glob "/home/$path*";
+    $c->render(json => { path => $hit || $path });
+};
+
+post "/home/*path" => { path => '' } => sub {
+    my $c = shift;
+    my $path = "/home/" . $c->stash('path');
+    $c->render(json => { data => process_csv read_csv $path });
+};
+
+sub common_lead {
+    my $path =  reduce {
+        my $min = min length($a), length($b);
+        my $ret = substr($a, 0, $min);
+        my $new = substr($b, 0, $min);
+        while ($ret ne $new) {
+            $ret =~ s/.$//;
+            $new =~ s/.$//;
+        }
+        $ret
+    } @_;
+    $path .= '/' if -d $path;
+    $path =~ s|^/home/||;
+    return $path;
+}
+
+our @colors = qw{
+    rgb(255,0,0)
+    rgb(255,128,0)
+    rgb(255,200,0)
+    rgb(128,200,0)
+    rgb(0,255,0)
+    rgb(0,200,128)
+    rgb(0,200,200)
+    rgb(0,128,255)
+    rgb(0,0,255)
+    rgb(128,0,255)
+    rgb(255,0,255)
+    rgb(255,128,128)
+};
+our $i_color = 0;
+sub color { borderColor => $colors[$i_color++ % scalar @colors] }
+
+sub read_csv {
+    my $file = shift;
+    open my $fh, '<', $file or return;
+    my %res;
+    while (readline $fh) {
+        s/\r|\n//g; # chomp any linefeed format
+        s/[,;]$//; # chop trailing CSV separators
+        my @comma = split /,/;
+        my @semi = split /;/;
+        if (@comma > @semi) {
+            my $key = 'c' . scalar @comma;
+            push @{$res{$key}}, \@comma;
+        } elsif (@semi) {
+            my $key = 's' . scalar @semi;
+            push @{$res{$key}}, \@semi;
+        }
+    }
+    reduce { @$b > @$a ? $b : $a } values %res;
+}
+
+sub process_csv {
+    my $table = shift; # arrayref of arrayrefs, 1st line keys
+    my $data = {
+        labels => [],
+        datasets => [],
+    };
+    while (@{$table->[0]}) {
+        push
+            @{$data->{datasets}},
+            { color, data => [ map { shift @$_ } @$table ]};
+    }
+    $_->{label} = shift @{$_->{data}} for @{$data->{datasets}};
+    $data->{labels} = (shift @{$data->{datasets}})->{data};
+    return $data;
+}
+
+app->start('daemon');
