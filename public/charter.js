@@ -7,7 +7,8 @@ var $ = {
     idClr: function(id) { return $.clr($.id(id)) },
     date2n: function(d) { return moment(d) / (86400000 * 365.2425) + 1970 },
     n2date: function(n) { return moment((n - 1970) * 86400000 * 365.2425 + 1).format('YYYYMMDD') },
-    leftpad: function(s, l) { s = s.substr(0,l); var ls = s.length; return ' '.repeat(l-ls) + s },
+    lpw: 10,
+    leftpad: function(s) { s = s.substr(0,$.lpw); var ls = s.length; return ' '.repeat($.lpw-ls) + s },
 };
 
 // Chart on canvas
@@ -39,6 +40,9 @@ var chart = new Chart(ctx, {
             position: 'nearest',
             backgroundColor: 'rgba(0,0,0,0.6)',
             bodyFontFamily: 'monospace',
+            footerFontStyle: 'normal',
+            footerFontSize: 10,
+            footerFontFamily: 'sans-serif',
             callbacks: {
                 label: function(tooltipItem, data) {
                     var key = data.datasets[tooltipItem.datasetIndex].label;
@@ -46,8 +50,9 @@ var chart = new Chart(ctx, {
                     if (key.match(/_date$/)) {
                         val = $.n2date(val);
                     }
-                    return $.leftpad(key, 16) + '  ' + val;
+                    return $.leftpad(key) + '  ' + val;
                 },
+                footer: function(a,d) { return "Zoom: wheel drag double-click" },
             },
         },
         animation: { duration : 0 },
@@ -77,7 +82,12 @@ $.id("path").onkeydown = function(ev) {
                 self.value = resp.path;
             } else if (resp.data) { // ENTER
                 var data = resp.data;
+                $.lpw = 0;
                 for (i = 0; i < data.datasets.length; i++) {
+                    var lpw = data.datasets[i].label.length;
+                    if ($.lpw < lpw) {
+                        $.lpw = lpw;
+                    }
                     if (! data.datasets[i].label.match(/_date$/i))
                         continue;
                     for (j = 0; j < data.datasets[i].data.length; j++) {
@@ -87,6 +97,7 @@ $.id("path").onkeydown = function(ev) {
                 }
                 chart.data = resp.data;
                 chart.update();
+                console.log($.lpw);
             }
         }
     }
