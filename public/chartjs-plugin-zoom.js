@@ -193,38 +193,20 @@ function doZoom(chartInstance, zoom, center, whichAxes) {
 }
 
 function panIndexScale(scale, delta, panOptions) {
-	console.log('panIndexScale');
 	var labels = scale.chart.data.labels;
 	var lastLabelIndex = labels.length - 1;
-	var offsetAmt = Math.max((scale.ticks.length - ((scale.options.gridLines.offsetGridLines) ? 0 : 1)), 1);
-	var panSpeed = panOptions.speed;
 	var minIndex = scale.minIndex;
 	var maxIndex = scale.maxIndex;
-	var step = Math.round(scale.width / (offsetAmt * panSpeed));
 
-	zoomNS.panCumulativeDelta -= delta;
-	if (zoomNS.panCumulativeDelta <= step && zoomNS.panCumulativeDelta >= -step)
-		return;
+	var dIndex = scale.getValueForPixel(Math.abs(delta)) - scale.getValueForPixel(0);
+	if (delta > 0) dIndex *= -1;
+	console.log('panIndexScale', delta, dIndex);
 
-	var dIndex = zoomNS.panCumulativeDelta;
-	zoomNS.panCumulativeDelta = 0;
+	if (minIndex + dIndex < 0) dIndex = -minIndex;
+	if (maxIndex + dIndex > lastLabelIndex) dIndex = lastLabelIndex - maxIndex;
 
-	if (dIndex > 0) {
-		if (maxIndex >= lastLabelIndex) {
-			return;
-		} else {
-			minIndex += 1;
-			maxIndex += 1;
-		}
-	}
-	if (dIndex < 0) {
-		if (minIndex <= 0) {
-			return;
-		} else {
-			minIndex -= 1;
-			maxIndex -= 1;
-		}
-	}
+	minIndex += dIndex;
+	maxIndex += dIndex;
 
 	scale.options.ticks.min = rangeMinLimiter(panOptions, labels[minIndex]);
 	scale.options.ticks.max = rangeMaxLimiter(panOptions, labels[maxIndex]);
@@ -242,7 +224,7 @@ function panTimeScale(scale, delta, panOptions) {
 }
 
 function panNumericalScale(scale, delta, panOptions) {
-	console.log('panNumericalScale');
+	console.log('panNumericalScale', delta);
 	var tickOpts = scale.options.ticks;
 	var start = scale.start,
 		end = scale.end;
