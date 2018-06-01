@@ -70,6 +70,8 @@ canvas.ondblclick = function(ev) {
 // File input field
 $.id("path").onkeydown = function(ev) {
     var key = ev.keyCode;
+    var hits = $.id('hits');
+    $.clr(hits);
     if (key != 9 && key != 13) { return }
     var self = this;
     var txt = self.value;
@@ -80,6 +82,12 @@ $.id("path").onkeydown = function(ev) {
             var resp = JSON.parse(r.responseText);
             if (key == 9) { // TAB
                 self.value = resp.path;
+                for (i = 0; i < resp.hits.length; i++) {
+                    if (resp.hits.length == 1) break;
+                    var hit = $.tag('div');
+                    $.appTxt(hit, resp.hits[i]);
+                    hits.appendChild(hit);
+                }
             } else if (resp.data) { // ENTER
                 var data = resp.data;
                 $.lpw = 0;

@@ -10,8 +10,12 @@ sub common_lead; sub color; sub read_csv; sub process_csv;
 get "/home/*path" => { path => '' } => sub {
     my $c = shift;
     my $path = $c->stash('path');
-    my $hit = common_lead glob "/home/$path*";
-    $c->render(json => { path => $hit || $path });
+    my @hits = map { $_ .= '/' if -d $_; $_ } glob "/home/$path*";
+    my $hit = common_lead @hits;
+    $c->render(json => {
+        path => $hit || $path,
+        hits => [ map { s|^/home/||; $_ } @hits ],
+    });
 };
 
 post "/home/*path" => { path => '' } => sub {
@@ -21,7 +25,7 @@ post "/home/*path" => { path => '' } => sub {
 };
 
 sub common_lead {
-    my $path =  reduce {
+    my $path = reduce {
         my $min = min length($a), length($b);
         my $ret = substr($a, 0, $min);
         my $new = substr($b, 0, $min);
@@ -31,7 +35,6 @@ sub common_lead {
         }
         $ret
     } @_;
-    $path .= '/' if -d $path;
     $path =~ s|^/home/||;
     return $path;
 }

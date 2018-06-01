@@ -16,15 +16,21 @@
   input { outline: none; border: 0px }
   .tooltip { position: relative }
   .tooltip .tooltiptxt {
+    visibility: hidden;
     font-family: sans-serif;
     font-size: x-small;
-    visibility: hidden;
     background-color: black;
     color: white;
     opacity: 0.6;
     padding: 3px;
     border-radius: 4px;
-    position: absolute; z-index: 1; top: 100%; left: 48px
+    position: absolute; z-index: 1; top: 100%; left: 50px
+  }
+  .hits {
+    visibility: visible;
+    color: gray;
+    background-color: white;
+    position: absolute; z-index: 2; top: 100%; left: 50px
   }
   .tooltip:hover .tooltiptxt { visibility: visible; }
 </style>
@@ -33,6 +39,7 @@
 <body>
 <div class="tooltip" style="display:table; width:100%">
 <span class="tooltiptxt">Tab to expand, Enter to load. Click legend to select</span>
+<div id="hits" class="hits"></div>
 <label for="path" style="display:table-cell; width:1px">/home/</label>
 <input type="text" id="path" autofocus="true"
     style="display:table-cell; width:99%"
