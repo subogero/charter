@@ -7,6 +7,12 @@ use List::Util qw(min reduce);
 
 sub common_lead; sub color; sub read_csv; sub process_csv;
 
+get '/' => sub {
+    open my $fh, '<', 'public/index.html' or die $!;
+    my $index = join '', readline $fh;
+    shift()->render(text => $index);
+};
+
 get "/home/*path" => { path => '' } => sub {
     my $c = shift;
     my $path = $c->stash('path');
