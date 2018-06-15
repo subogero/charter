@@ -67,49 +67,85 @@ canvas.ondblclick = function(ev) {
     chart.resetZoom();
 };
 
-// File input field
-$.id("path").onkeydown = function(ev) {
-    var key = ev.keyCode;
-    var hits = $.id('hits');
-    $.clr(hits);
-    if (key != 9 && key != 13) { return }
+function updateChart(data) {
+    $.lpw = 0;
+    for (i = 0; i < data.datasets.length; i++) {
+        var lpw = data.datasets[i].label.length;
+        if ($.lpw < lpw) {
+            $.lpw = lpw;
+        }
+        if (! data.datasets[i].label.match(/_date$/i))
+            continue;
+        for (j = 0; j < data.datasets[i].data.length; j++) {
+            var d = $.date2n(moment(data.datasets[i].data[j]));
+            data.datasets[i].data[j] = d;
+        }
+    }
+    chart.data = data;
+    chart.update();
+    console.log($.lpw);
+}
+
+function tabExpand(el, el_hits, route, on_enter) {
+    $.id(el).onkeydown = function(ev) {
+        var self = this;
+        self.classList.remove('loaded');
+        self.classList.remove('connected');
+        var key = ev.keyCode;
+        var hits = $.id(el_hits);
+        $.clr(hits);
+        if (key != 9 && key != 13) { return }
+        var txt = self.value;
+        console.log("tabExpand", txt);
+        ev.preventDefault();
+        var r = new XMLHttpRequest();
+        r.onreadystatechange = function() {
+            if (r.readyState == 4 && r.status == 200) {
+                var resp = JSON.parse(r.responseText);
+                if (key == 9) { // TAB
+                    self.value = resp.path;
+                    for (i = 0; i < resp.hits.length; i++) {
+                        if (resp.hits.length == 1) break;
+                        var hit = $.tag('div');
+                        $.appTxt(hit, resp.hits[i]);
+                        hits.appendChild(hit);
+                    }
+                } else if (key == 13) { // ENTER
+                    on_enter(resp);
+                }
+            }
+        }
+        var method = key == 9 ? "GET" : "POST";
+        r.open(method, route + txt, true);
+        r.send();
+    }
+}
+
+var dbh = '';
+tabExpand("path", "hits", "/home/", function(resp) {
+    updateChart(resp.data)
+    $.id('select').classList.remove('loaded');
+    $.id('path').classList.add('loaded');
+});
+tabExpand("schema", "dbhits", "/db/", function(resp) {
+    dbh = resp.dbh
+    $.id('schema').classList.add('connected');
+    $.id('select').focus();
+});
+$.id('select').onkeydown = function(ev) {
     var self = this;
-    var txt = self.value;
-    ev.preventDefault();
+    self.classList.remove('loaded');
+    if (ev.keyCode != 13) { return }
     var r = new XMLHttpRequest();
     r.onreadystatechange = function() {
         if (r.readyState == 4 && r.status == 200) {
             var resp = JSON.parse(r.responseText);
-            if (key == 9) { // TAB
-                self.value = resp.path;
-                for (i = 0; i < resp.hits.length; i++) {
-                    if (resp.hits.length == 1) break;
-                    var hit = $.tag('div');
-                    $.appTxt(hit, resp.hits[i]);
-                    hits.appendChild(hit);
-                }
-            } else if (resp.data) { // ENTER
-                var data = resp.data;
-                $.lpw = 0;
-                for (i = 0; i < data.datasets.length; i++) {
-                    var lpw = data.datasets[i].label.length;
-                    if ($.lpw < lpw) {
-                        $.lpw = lpw;
-                    }
-                    if (! data.datasets[i].label.match(/_date$/i))
-                        continue;
-                    for (j = 0; j < data.datasets[i].data.length; j++) {
-                        var d = $.date2n(moment(data.datasets[i].data[j]));
-                        data.datasets[i].data[j] = d;
-                    }
-                }
-                chart.data = resp.data;
-                chart.update();
-                console.log($.lpw);
-            }
+            updateChart(resp.data);
+            $.id('path').classList.remove('loaded');
+            $.id('select').classList.add('loaded');
         }
     }
-    var method = key == 9 ? "GET" : "POST";
-    r.open(method, "/home/" + txt, true);
-    r.send();
+    r.open("POST", "/select", true);
+    r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    r.send(JSON.stringify({ schema: dbh, query: self.value }));
 };

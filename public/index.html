@@ -13,37 +13,45 @@
     padding:0;
     overflow:hidden;
   }
-  input { outline: none; border: 0px }
-  .tooltip { position: relative }
-  .tooltip .tooltiptxt {
-    visibility: hidden;
-    font-family: sans-serif;
-    font-size: x-small;
-    background-color: black;
-    color: white;
-    opacity: 0.6;
-    padding: 3px;
-    border-radius: 4px;
-    position: absolute; z-index: 1; top: 100%; left: 50px
-  }
+  input { outline:none; border:0px }
+  .width_table { display:table; width:100%; position:relative }
+  .width_cell { display:table-cell }
+  .width_rest { display:table-cell; width:99% }
   .hits {
     visibility: visible;
     color: gray;
     background-color: white;
     position: absolute; z-index: 2; top: 100%; left: 50px
   }
-  .tooltip:hover .tooltiptxt { visibility: visible; }
+  .loaded { background-color: #cef }
+  .connected { background-color: #afd }
 </style>
 </head>
 
 <body>
-<div class="tooltip" style="display:table; width:100%">
-<span class="tooltiptxt">Tab to expand, Enter to load. Click legend to select</span>
+<div class="width_table">
 <div id="hits" class="hits"></div>
-<label for="path" style="display:table-cell; width:1px">/home/</label>
+<label for="path" class="width_cell" style="width:1px">/home/</label>
 <input type="text" id="path" autofocus="true"
-    style="display:table-cell; width:99%"
-    placeholder="Enter server path to file containing CSV data"
+    class="width_rest"
+    placeholder="Server path to CSV file. Tab to expand, Enter to load"
+></input>
+</div>
+
+<div class="width_table">
+<div id="dbhits" class="hits"></div>
+<label for="schema" class="width_cell" style="width:1px">schema&nbsp;</label>
+<input id="schema" type="text"
+    class="width_rest"
+    placeholder="ENV/schema. Tab to expand, Enter to connect"
+></input>
+</div>
+
+<div class="width_table">
+<label for="select" class="width_cell" style="width:1px">select&nbsp;</label>
+<input type="text" id="select"
+    class="width_rest"
+    placeholder="Select query. Enter to execute"
 ></input>
 </div>
 

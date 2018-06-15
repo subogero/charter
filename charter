@@ -3,32 +3,11 @@ use strict;
 use warnings;
 use Mojolicious::Lite;
 use YAML::XS;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use DBconnect;
 use List::Util qw(min reduce);
-
-sub common_lead; sub color; sub read_csv; sub process_csv;
-
-get '/' => sub {
-    open my $fh, '<', 'public/index.html' or die $!;
-    my $index = join '', readline $fh;
-    shift()->render(text => $index);
-};
-
-get "/home/*path" => { path => '' } => sub {
-    my $c = shift;
-    my $path = $c->stash('path');
-    my @hits = map { $_ .= '/' if -d $_; $_ } glob "/home/$path*";
-    my $hit = common_lead @hits;
-    $c->render(json => {
-        path => $hit || $path,
-        hits => [ map { s|^/home/||; $_ } @hits ],
-    });
-};
-
-post "/home/*path" => { path => '' } => sub {
-    my $c = shift;
-    my $path = "/home/" . $c->stash('path');
-    $c->render(json => { data => process_csv read_csv $path });
-};
+use Sys::Hostname;
 
 sub common_lead {
     my $path = reduce {
@@ -45,22 +24,23 @@ sub common_lead {
     return $path;
 }
 
-our @colors = qw{
-    rgb(255,0,0)
-    rgb(255,128,0)
-    rgb(255,200,0)
-    rgb(128,200,0)
-    rgb(0,255,0)
-    rgb(0,200,128)
-    rgb(0,200,200)
-    rgb(0,128,255)
-    rgb(0,0,255)
-    rgb(128,0,255)
-    rgb(255,0,255)
-    rgb(255,128,128)
-};
-our $i_color = 0;
-sub color { borderColor => $colors[$i_color++ % scalar @colors] }
+sub color {
+    our @colors = qw{
+        rgb(255,0,0)
+        rgb(255,128,0)
+        rgb(255,200,0)
+        rgb(128,200,0)
+        rgb(0,255,0)
+        rgb(0,200,128)
+        rgb(0,200,200)
+        rgb(0,128,255)
+        rgb(0,0,255)
+        rgb(128,0,255)
+        rgb(255,0,255)
+        rgb(255,128,128)
+    };
+    return borderColor => $colors[$_[0]++ % scalar @colors];
+}
 
 sub read_csv {
     my $file = shift;
@@ -88,15 +68,106 @@ sub process_csv {
         labels => [],
         datasets => [],
     };
-    $i_color = 0;
+    my $i_color = 0;
     while (@{$table->[0]}) {
         push
             @{$data->{datasets}},
-            { color, data => [ map { shift @$_ } @$table ]};
+            { color $i_color, data => [ map { shift @$_ } @$table ]};
     }
     $_->{label} = shift @{$_->{data}} for @{$data->{datasets}};
     $data->{labels} = (shift @{$data->{datasets}})->{data};
     return $data;
 }
 
+get '/' => sub {
+    open my $fh, '<', 'public/index.html' or die $!;
+    my $index = join '', readline $fh;
+    shift()->render(text => $index);
+};
+
+get "/home/*path" => { path => '' } => sub {
+    my $c = shift;
+    my $path = $c->stash('path');
+    my @hits = map { $_ .= '/' if -d $_; $_ } glob "/home/$path*";
+    my $hit = common_lead @hits;
+    $c->render(json => {
+        path => $hit || $path,
+        hits => [ map { s|^/home/||; $_ } @hits ],
+    });
+};
+
+post "/home/*path" => { path => '' } => sub {
+    my $c = shift;
+    my $path = "/home/" . $c->stash('path');
+    $c->render(json => { data => process_csv read_csv $path });
+};
+
+get "/db/*schema" => { schema => '' } => sub {
+    my $c = shift;
+    my $path = $c->stash('schema');
+    my ($env, $schema) = split /\//, $path, 2;
+    my $conn = dbConnectInfo;
+    my (@hits, $hit);
+    unless (defined $schema) { # Expand env
+        @hits = map {"$_/" } grep { /^$env/ } keys %$conn;
+        $hit = common_lead @hits;
+    } else { # Expand schema name
+        @hits = map { "$env/$_" } grep { /^$schema/ } keys %{$conn->{$env}};
+        $hit = common_lead @hits;
+    }
+    $c->render(json => {
+        path => $hit || $path,
+        hits => \@hits,
+    });
+};
+
+post "/db/*schema" => { schema => '' } => sub {
+    my $c = shift;
+    my $path = $c->stash('schema');
+    my ($env, $schema) = split /\//, $path, 2;
+    local $ENV{MDS_MODE} = $env;
+    db_connect($schema);
+    print STDERR Dump { dbhs => [ keys %$dbhs ] };
+    $c->render(json => { dbh => $schema });
+};
+
+post "/select" => sub {
+    my $c = shift;
+    my $input = $c->req->json;
+    my $schema = $input->{schema} or die 'No schema';
+    my $dbh = $dbhs->{$schema} or die "Schema '$schema' disconnected";
+    my $query = $input->{query} or die 'Empty query';
+    $query =~ s/^select //i;
+    $query =~ s/;$//;
+    $query =~ /;|insert +into|delete +from|droptable/i and die 'Illegal query';
+
+    my ($col1) = $query =~ /^([\w.]+)[\s,].*/;
+    my $sql = "select $query order by $col1";
+    print STDERR "$sql\n";
+    my $sth = $dbh->prepare_cached($sql);
+    $sth->execute;
+
+    my @label = @{$sth->{NAME_lc}};
+    shift @label;
+
+    my $i_color = 0;
+    my @ys = map { { label => $_, color $i_color, data => [] } } @label;
+
+    my @x;
+    while (my @row = $sth->fetchrow_array) {
+        push @x, shift @row;
+        for (1 .. @row) {
+            my $i = $_ - 1;
+            push @{$ys[$i]->{data}}, $row[$i];
+        }
+    }
+
+    my $data = {
+        labels => \@x,
+        datasets => \@ys,
+    };
+    $c->render(json => { data => $data });
+};
+
+print STDERR 'http://' . hostname . ":3000/\n";
 app->start('daemon');
