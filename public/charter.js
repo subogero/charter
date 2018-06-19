@@ -91,6 +91,7 @@ function tabExpand(el, el_hits, route, on_enter) {
         var self = this;
         self.classList.remove('loaded');
         self.classList.remove('connected');
+        self.classList.remove('failed');
         var key = ev.keyCode;
         var hits = $.id(el_hits);
         $.clr(hits);
@@ -100,8 +101,13 @@ function tabExpand(el, el_hits, route, on_enter) {
         ev.preventDefault();
         var r = new XMLHttpRequest();
         r.onreadystatechange = function() {
-            if (r.readyState == 4 && r.status == 200) {
-                var resp = JSON.parse(r.responseText);
+            if (r.readyState != 4) { return }
+            var resp = JSON.parse(r.responseText);
+            if (r.status != 200) {
+                self.classList.add('failed');
+                $.id('err').innerHTML = resp.error;
+            } else {
+                $.id('err').innerHTML = '';
                 if (key == 9) { // TAB
                     self.value = resp.path;
                     for (i = 0; i < resp.hits.length; i++) {
@@ -125,24 +131,33 @@ var dbh = '';
 tabExpand("path", "hits", "/home/", function(resp) {
     updateChart(resp.data)
     $.id('select').classList.remove('loaded');
+    $.id('select').classList.remove('failed');
     $.id('path').classList.add('loaded');
 });
 tabExpand("schema", "dbhits", "/db/", function(resp) {
     dbh = resp.dbh
     $.id('schema').classList.add('connected');
+    $.id('schema').classList.remove('failed');
     $.id('select').focus();
 });
 $.id('select').onkeydown = function(ev) {
     var self = this;
     self.classList.remove('loaded');
+    self.classList.remove('failed');
     if (ev.keyCode != 13) { return }
     var r = new XMLHttpRequest();
     r.onreadystatechange = function() {
-        if (r.readyState == 4 && r.status == 200) {
+        if (r.readyState != 4) { return }
+        var resp = JSON.parse(r.responseText);
+        if (r.status != 200) {
+            self.classList.add('failed');
+            $.id('err').innerHTML = resp.error;
+        } else {
             var resp = JSON.parse(r.responseText);
             updateChart(resp.data);
             $.id('path').classList.remove('loaded');
             $.id('select').classList.add('loaded');
+            $.id('err').innerHTML = '';
         }
     }
     r.open("POST", "/select", true);

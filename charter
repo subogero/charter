@@ -144,14 +144,16 @@ post "/select" => sub {
     my ($col1) = $query =~ /^([\w.]+)[\s,].*/;
     my $sql = "select $query order by $col1";
     print STDERR "$sql\n";
-    my $sth = $dbh->prepare_cached($sql);
-    $sth->execute;
+    my $sth = eval { $dbh->prepare_cached($sql) }
+        or $c->render(status => 500, json => { error => $@ }) and return;
+    eval { $sth->execute }
+        or $c->render(status => 500, json => { error => $@ }) and return;
 
     my @label = @{$sth->{NAME_lc}};
     shift @label;
 
     my $i_color = 0;
-    my @ys = map { { label => $_, color $i_color, data => [] } } @label;
+    my @ys = map { { label => $_, color($i_color), data => [] } } @label;
 
     my @x;
     while (my @row = $sth->fetchrow_array) {
@@ -161,6 +163,7 @@ post "/select" => sub {
             push @{$ys[$i]->{data}}, $row[$i];
         }
     }
+    $sth->finish;
 
     my $data = {
         labels => \@x,
