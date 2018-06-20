@@ -9,6 +9,35 @@ var $ = {
     n2date: function(n) { return moment((n - 1970) * 86400000 * 365.2425 + 1).format('YYYYMMDD') },
     lpw: 10,
     leftpad: function(s) { s = s.substr(0,$.lpw); var ls = s.length; return ' '.repeat($.lpw-ls) + s },
+    resClasses: {},
+    resClass: function(el) {
+        for (let key of Object.keys($.resClasses)) { el.classList.remove(key) }
+        if (arguments.length < 2) { return }
+        var key = arguments[1];
+        $.resClasses[key] = 1;
+        el.classList.add(key);
+    },
+    ajax: function(method, route, data, on200, on500) {
+        var r = new XMLHttpRequest();
+        r.onreadystatechange = function() {
+            if (r.readyState != 4) { return }
+            var resp = JSON.parse(r.responseText);
+            if (r.status == 200) {
+                if (on200) { on200(resp) }
+                $.id('err').innerHTML = '';
+            } else {
+                if (on500) { on500(resp) }
+                $.id('err').innerHTML = resp.error;
+            }
+        }
+        r.open(method, route, true);
+        if (data) {
+            r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+            r.send(JSON.stringify(data));
+        } else {
+            r.send();
+        }
+    },
 };
 
 // Chart on canvas
@@ -86,12 +115,14 @@ function updateChart(data) {
     console.log($.lpw);
 }
 
+function resClassFailed(resp) {
+    if (el500 != undefined) { $.resClass(el500, 'failed') };
+}
+
 function tabExpand(el, el_hits, route, on_enter) {
     $.id(el).onkeydown = function(ev) {
         var self = this;
-        self.classList.remove('loaded');
-        self.classList.remove('connected');
-        self.classList.remove('failed');
+        $.resClass(self);
         var key = ev.keyCode;
         var hits = $.id(el_hits);
         $.clr(hits);
@@ -99,68 +130,46 @@ function tabExpand(el, el_hits, route, on_enter) {
         var txt = self.value;
         console.log("tabExpand", txt);
         ev.preventDefault();
-        var r = new XMLHttpRequest();
-        r.onreadystatechange = function() {
-            if (r.readyState != 4) { return }
-            var resp = JSON.parse(r.responseText);
-            if (r.status != 200) {
-                self.classList.add('failed');
-                $.id('err').innerHTML = resp.error;
-            } else {
-                $.id('err').innerHTML = '';
-                if (key == 9) { // TAB
-                    self.value = resp.path;
-                    for (i = 0; i < resp.hits.length; i++) {
-                        if (resp.hits.length == 1) break;
-                        var hit = $.tag('div');
-                        $.appTxt(hit, resp.hits[i]);
-                        hits.appendChild(hit);
-                    }
-                } else if (key == 13) { // ENTER
-                    on_enter(resp);
-                }
-            }
-        }
         var method = key == 9 ? "GET" : "POST";
-        r.open(method, route + txt, true);
-        r.send();
+        $.ajax(method, route + txt, undefined, function(resp) {
+            if (key == 9) { // TAB
+                self.value = resp.path;
+                for (i = 0; i < resp.hits.length; i++) {
+                    if (resp.hits.length == 1) break;
+                    var hit = $.tag('div');
+                    $.appTxt(hit, resp.hits[i]);
+                    hits.appendChild(hit);
+                }
+            } else if (key == 13) { // ENTER
+                on_enter(resp);
+            }
+        }, function(resp) {
+            $.resClass(self, 'failed');
+        });
     }
 }
 
-var dbh = '';
 tabExpand("path", "hits", "/home/", function(resp) {
     updateChart(resp.data)
-    $.id('select').classList.remove('loaded');
-    $.id('select').classList.remove('failed');
-    $.id('path').classList.add('loaded');
+    $.resClass($.id('path'), 'loaded');
+    $.resClass($.id('select'));
 });
+
+var dbh = '';
 tabExpand("schema", "dbhits", "/db/", function(resp) {
     dbh = resp.dbh
-    $.id('schema').classList.add('connected');
-    $.id('schema').classList.remove('failed');
+    $.resClass($.id('schema'), 'connected');
     $.id('select').focus();
 });
 $.id('select').onkeydown = function(ev) {
     var self = this;
-    self.classList.remove('loaded');
-    self.classList.remove('failed');
+    $.resClass(self);
     if (ev.keyCode != 13) { return }
-    var r = new XMLHttpRequest();
-    r.onreadystatechange = function() {
-        if (r.readyState != 4) { return }
-        var resp = JSON.parse(r.responseText);
-        if (r.status != 200) {
-            self.classList.add('failed');
-            $.id('err').innerHTML = resp.error;
-        } else {
-            var resp = JSON.parse(r.responseText);
-            updateChart(resp.data);
-            $.id('path').classList.remove('loaded');
-            $.id('select').classList.add('loaded');
-            $.id('err').innerHTML = '';
-        }
-    }
-    r.open("POST", "/select", true);
-    r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    r.send(JSON.stringify({ schema: dbh, query: self.value }));
+    $.ajax('POST', '/select', { schema: dbh, query: self.value }, function(resp) {
+        updateChart(resp.data);
+        $.resClass(self, 'loaded');
+        $.resClass($.id('path'));
+    }, function(resp) {
+        $.resClass(self, 'failed');
+    });
 };
