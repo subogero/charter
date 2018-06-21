@@ -116,10 +116,6 @@ function updateChart(data) {
     console.log($.lpw);
 }
 
-function resClassFailed(resp) {
-    if (el500 != undefined) { $.resClass(el500, 'failed') };
-}
-
 function tabExpand(el, el_hits, route, on_enter) {
     $.id(el).onkeydown = function(ev) {
         var self = this;
@@ -155,6 +151,10 @@ tabExpand("path", "hits", "/home/", function(resp) {
     $.resClass($.id('path'), 'loaded');
     $.resClass($.id('select'));
 });
+$.id("path").onkeyup = function(ev) {
+    var self = this;
+    if (ev.keyCode == 40) { $.id("schema").focus() }
+};
 
 var dbh = '';
 tabExpand("schema", "dbhits", "/db/", function(resp) {
@@ -162,6 +162,11 @@ tabExpand("schema", "dbhits", "/db/", function(resp) {
     $.resClass($.id('schema'), 'connected');
     $.id('select').focus();
 });
+$.id("schema").onkeyup = function(ev) {
+    var self = this;
+    if (ev.keyCode == 38) { $.id("path").focus() }
+};
+
 $.id('select').onkeydown = function(ev) {
     var self = this;
     $.resClass(self);
@@ -173,4 +178,8 @@ $.id('select').onkeydown = function(ev) {
     }, function(resp) {
         $.resClass(self, 'failed');
     });
+};
+$.id("select").onkeyup = function(ev) {
+    var self = this;
+    if (ev.keyCode == 27) { $.id("schema").focus() }
 };
