@@ -44,7 +44,7 @@ sub color {
 
 sub read_csv {
     my $file = shift;
-    open my $fh, '<', $file or return;
+    open my $fh, '<', $file or die $!;
     my %res;
     while (readline $fh) {
         s/\r|\n//g; # chomp any linefeed format
@@ -72,12 +72,26 @@ sub process_csv {
     while (@{$table->[0]}) {
         push
             @{$data->{datasets}},
-            { color $i_color, data => [ map { shift @$_ } @$table ]};
+            { color($i_color), data => [ map { shift @$_ } @$table ]};
     }
     $_->{label} = shift @{$_->{data}} for @{$data->{datasets}};
     $data->{labels} = (shift @{$data->{datasets}})->{data};
+    @{$data->{labels}} or die "No CSV formatted data found in file";
     return $data;
 }
+
+# Centralized JSON based exception handling
+hook before_render => sub {
+    my ($c, $args) = @_;
+
+    return unless my $template = $args->{template};
+    return unless $template =~ /^exception/;
+
+    %$args = (
+        status => 500,
+        json => { error => $args->{exception}{message} },
+    );
+};
 
 get '/' => sub {
     open my $fh, '<', 'public/index.html' or die $!;
@@ -99,7 +113,8 @@ get "/home/*path" => { path => '' } => sub {
 post "/home/*path" => { path => '' } => sub {
     my $c = shift;
     my $path = "/home/" . $c->stash('path');
-    $c->render(json => { data => process_csv read_csv $path });
+    my $data = process_csv read_csv $path;
+    $c->render(json => { data => $data });
 };
 
 get "/db/*schema" => { schema => '' } => sub {
@@ -125,6 +140,8 @@ post "/db/*schema" => { schema => '' } => sub {
     my $c = shift;
     my $path = $c->stash('schema');
     my ($env, $schema) = split /\//, $path, 2;
+    $env or die 'No DB env';
+    $schema or die 'No DB schema';
     local $ENV{MDS_MODE} = $env;
     db_connect($schema);
     print STDERR Dump { dbhs => [ keys %$dbhs ] };
@@ -144,10 +161,8 @@ post "/select" => sub {
     my ($col1) = $query =~ /^([\w.]+)[\s,].*/;
     my $sql = "select $query order by $col1";
     print STDERR "$sql\n";
-    my $sth = eval { $dbh->prepare_cached($sql) }
-        or $c->render(status => 500, json => { error => $@ }) and return;
-    eval { $sth->execute }
-        or $c->render(status => 500, json => { error => $@ }) and return;
+    my $sth = $dbh->prepare_cached($sql);
+    $sth->execute;
 
     my @label = @{$sth->{NAME_lc}};
     shift @label;
