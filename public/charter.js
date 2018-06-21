@@ -128,6 +128,7 @@ function tabExpand(el, el_hits, route, on_enter) {
         console.log("tabExpand", txt);
         ev.preventDefault();
         var method = key == 9 ? "GET" : "POST";
+        $.resClass(self, 'processing');
         ajax(method, route + txt, undefined, function(resp) {
             if (key == 9) { // TAB
                 self.value = resp.path;
@@ -171,6 +172,7 @@ $.id('select').onkeydown = function(ev) {
     var self = this;
     $.resClass(self);
     if (!ev.ctrlKey || ev.keyCode != 13) { return }
+    $.resClass(self, 'processing');
     ajax('POST', '/select', { schema: dbh, query: self.value }, function(resp) {
         updateChart(resp.data);
         $.resClass(self, 'loaded');
