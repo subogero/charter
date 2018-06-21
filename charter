@@ -127,8 +127,13 @@ get "/db/*schema" => { schema => '' } => sub {
         @hits = map {"$_/" } grep { /^$env/ } keys %$conn;
         $hit = common_lead @hits;
     } else { # Expand schema name
-        @hits = map { "$env/$_" } grep { /^$schema/ } keys %{$conn->{$env}};
-        $hit = common_lead @hits;
+        my %schemas = %{$conn->{$env}};
+        my %shits =
+            map { $env.'/'.$_ => "$schemas{$_}->{username}\@$schemas{$_}->{sid}" }
+            grep { m/^$schema/ }
+            keys %schemas;
+        @hits = map { "$_ $shits{$_}" } sort keys %shits;
+        $hit = common_lead keys %shits;
     }
     $c->render(json => {
         path => $hit || $path,
