@@ -17,28 +17,29 @@ var $ = {
         $.resClasses[key] = 1;
         el.classList.add(key);
     },
-    ajax: function(method, route, data, on200, on500) {
-        var r = new XMLHttpRequest();
-        r.onreadystatechange = function() {
-            if (r.readyState != 4) { return }
-            var resp = JSON.parse(r.responseText);
-            if (r.status == 200) {
-                if (on200) { on200(resp) }
-                $.id('err').innerHTML = '';
-            } else {
-                if (on500) { on500(resp) }
-                $.id('err').innerHTML = resp.error;
-            }
-        }
-        r.open(method, route, true);
-        if (data) {
-            r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-            r.send(JSON.stringify(data));
-        } else {
-            r.send();
-        }
-    },
 };
+
+function ajax(method, route, data, on200, on500) {
+    var r = new XMLHttpRequest();
+    r.onreadystatechange = function() {
+        if (r.readyState != 4) { return }
+        var resp = JSON.parse(r.responseText);
+        if (r.status == 200) {
+            if (on200) { on200(resp) }
+            $.id('err').innerHTML = '';
+        } else {
+            if (on500) { on500(resp) }
+            $.id('err').innerHTML = resp.error;
+        }
+    }
+    r.open(method, route, true);
+    if (data) {
+        r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        r.send(JSON.stringify(data));
+    } else {
+        r.send();
+    }
+}
 
 // Chart on canvas
 var canvas = $.id('chart');
@@ -131,7 +132,7 @@ function tabExpand(el, el_hits, route, on_enter) {
         console.log("tabExpand", txt);
         ev.preventDefault();
         var method = key == 9 ? "GET" : "POST";
-        $.ajax(method, route + txt, undefined, function(resp) {
+        ajax(method, route + txt, undefined, function(resp) {
             if (key == 9) { // TAB
                 self.value = resp.path;
                 for (i = 0; i < resp.hits.length; i++) {
@@ -164,8 +165,8 @@ tabExpand("schema", "dbhits", "/db/", function(resp) {
 $.id('select').onkeydown = function(ev) {
     var self = this;
     $.resClass(self);
-    if (ev.keyCode != 13) { return }
-    $.ajax('POST', '/select', { schema: dbh, query: self.value }, function(resp) {
+    if (!ev.ctrlKey || ev.keyCode != 13) { return }
+    ajax('POST', '/select', { schema: dbh, query: self.value }, function(resp) {
         updateChart(resp.data);
         $.resClass(self, 'loaded');
         $.resClass($.id('path'));

@@ -13,9 +13,10 @@
     padding:0;
     overflow:hidden;
   }
-  input { outline:none; border:0px }
+  input, textarea { outline:none; border:0px }
+  textarea { border-bottom: 1px solid #bbb }
   .width_table { display:table; width:100%; position:relative }
-  .width_cell { display:table-cell }
+  .width_cell { display:table-cell; vertical-align: top }
   .width_rest { display:table-cell; width:99% }
   .hits {
     visibility: visible;
@@ -50,17 +51,17 @@
 
 <div class="width_table">
 <label for="select" class="width_cell" style="width:1px">select&nbsp;</label>
-<input type="text" id="select"
+<textarea id="select"
     class="width_rest"
     placeholder="Select query. Enter to execute"
-></input>
+></textarea>
 </div>
+
+<pre id="err" class="failed"></pre>
 
 <div>
 <canvas id="chart"></canvas>
 </div>
-
-<div>Error console:</div><div id="err"></div>
 
 <script src="moment.min.js"></script>
 <script src="Chart.min.js"></script>
