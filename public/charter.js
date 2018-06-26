@@ -188,3 +188,11 @@ $.id("select").onkeyup = function(ev) {
     var self = this;
     if (ev.keyCode == 27) { $.id("schema").focus() }
 };
+
+// Help
+$.id('ahelp').onclick = function(ev) { $.id('help').style.display = 'block' };
+$.id('help').onclick = function(ev) { this.style.display = 'none' };
+document.onkeypress = function(ev) {
+    if (ev.key == 'F1')     { $.id('help').style.display = 'block' }
+    if (ev.key == 'Escape') { $.id('help').style.display = 'none' }
+};

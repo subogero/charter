@@ -10,8 +10,8 @@
     width: 100%;
     height: 100%;
     margin: 0;
-    padding:0;
-    overflow:hidden;
+    padding: 0;
+    overflow: hidden;
   }
   input, textarea { outline:none; border:0px }
   textarea { border-bottom: 1px solid #bbb }
@@ -28,13 +28,35 @@
   .loaded { background-color: #cef }
   .connected { background-color: #afd }
   .failed { background-color: #fcd }
+  .help {
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    height: 100%;
+    padding: 10%;
+    position: fixed; z-index: 10; top: 0%; left: 0%;
+    display: none;
+  }
+  .ahelp { background-color: rgba(0,0,0,0.7) }
+  a.ahelp:link { color: white }
+  a.ahelp:visited { color: white }
+  code { font-weight: 900 }
 </style>
 </head>
 
 <body>
+
 <div class="width_table">
 <div id="hits" class="hits"></div>
-<label for="path" class="width_cell" style="width:1px">/home/</label>
+<label
+    for="path"
+    class="width_cell"
+    style="width:1px"
+><a
+    id="ahelp"
+    class="ahelp"
+    title="Help F1"
+    href="javascript:void(0)"
+>?</a>/home/</label>
 <input type="text" id="path" autofocus="true"
     class="width_rest"
     placeholder="Server path to CSV file. Tab to expand, Enter to load. Down arrow to DB schema field"
@@ -62,6 +84,41 @@
 
 <div>
 <canvas id="chart"></canvas>
+</div>
+
+<div id="help" class="help">
+<h1 style="text-align:center">Charter - Help</h1>
+Instant view of tabular data on line diagrams
+<h3>Input fields</h3>
+<p><code>/home/</code> Enter a server side path to a file containing CSV data.
+The CSV part is extracted and the field separator is detected automatically.
+The TAB key expands the path like Bash.
+ENTER loads the file.
+Change to the schema selection field with the DOWN ARROW key.
+</p>
+<p><code>schema</code> Enter a logical database schema name in the form of ENV/name.
+The TAB key expands the ENV/name like Bash.
+ENTER connects the backend to the database and jumps to the Select field below.
+Change to the file selection field with the UP ARROW key.
+</p>
+<p><code>select</code> Enter a database query, select only.
+The field is a multiline text-area, resizeable by grabbing the lower-right corner.
+Ctrl-ENTER runs the query.
+Return to the schema field with the ESC key.
+<p>Input background colours: white for editing, grey for processing, red for error, green for connected, blue for loaded.
+</p>
+<h3>Chart</h3>
+<p>Click the legend symbols to show/hide individual lines.
+Hover the diagram area to view numerical values.
+Zoom in and out with the mouse wheel or a pinch gesture.
+Drag the diagram area to pan.
+Double-click to reset zoom/pan and shown lines.
+</p>
+<h3>Data</h3>
+<p>The first column becomes the X axis. The rest of the columns are shown as Y values.
+Dates shall be in YYYYMMDD format, and their column name must end with "_date".
+</p>
+<h2 style="text-align:center">Hit ESC or click anywhere to close</h2>
 </div>
 
 <script src="moment.min.js"></script>
