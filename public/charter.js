@@ -47,18 +47,20 @@ var ctx = canvas.getContext('2d');
 var chart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ["January", "February", "March", "April", "May", "June", "July"],
+        labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22],
         datasets: [
-            { label: "First", data: [0, 10, 5, 2, 20, 30, 45], },
-            { label: "Second", data: [32, 9, 8, -2, 23, 25, 31], },
-            { label: "Foo", data: [32, -9, 8, 2, 23, -25, 31], },
-            { label: "Bar", data: [-32, 9, -8, -2, null, 25, -31], borderColor: 'rgb(255, 99, 132)',},
+            { borderColor: 'rgb(255,50,50)', label: "Click", data: [0,2,4,4,4,null,0,2,4,4,4,null,null,0,2,4,null,null,0,2,4,4,4], },
+            { borderColor: 'rgb(255,60,40)', label: "Us",    data: [0,0,0,null,2,2,2,null,0,2,4,null,5,null,4,4,4,null,null,2,0], },
+            { borderColor: 'rgb(255,70,30)', label: "To",    data: [null,-1,null,0,2,4,null,2,2,2,null,5,null,5,null,0,2,4,4,4,null,-1,null], },
+            { borderColor: 'rgb(255,80,20)', label: "Show",  data: [null,5,null,-1,null,0,2,4,null,0,2,4,4,4,null,0,0,0,null,2,2,3,4], },
+            { borderColor: 'rgb(255,90,10)', label: "Hide",  data: [-1,null,-1,null,-1,null,-1,null,-1,null,2,0,null,null,-1,null,2,2,null,5,null,5,null], },
+            { borderColor: 'rgb(255,100,0)', label: "Lines", data: [5,null,5,null,5,null,5,null,5,null,2,2,3,4,null,-1,null,-1,null,-1,null,-1,null], },
         ]
     },
     options: {
         elements: {
             line: {
-                borderWidth: 1,
+                borderWidth: 5,
                 tension: 0,
                 backgroundColor: 'rgba(255,255,255,0)',
             },
@@ -111,6 +113,7 @@ function updateChart(data) {
             data.datasets[i].data[j] = d;
         }
     }
+    chart.options.elements.line.borderWidth = 1;
     chart.data = data;
     chart.update();
     console.log($.lpw);
