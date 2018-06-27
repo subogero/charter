@@ -75,7 +75,9 @@ sub process_csv {
             { color($i_color), data => [ map { shift @$_ } @$table ]};
     }
     $_->{label} = shift @{$_->{data}} for @{$data->{datasets}};
-    $data->{labels} = (shift @{$data->{datasets}})->{data};
+    my $x_axis = shift @{$data->{datasets}};
+    $data->{labels} = $x_axis->{data};
+    $data->{x_label} = $x_axis->{label};
     @{$data->{labels}} or die "No CSV formatted data found in file";
     return $data;
 }
@@ -170,7 +172,7 @@ post "/select" => sub {
     $sth->execute;
 
     my @label = @{$sth->{NAME_lc}};
-    shift @label;
+    my $x_label = shift @label;
 
     my $i_color = 0;
     my @ys = map { { label => $_, color($i_color), data => [] } } @label;
@@ -186,6 +188,7 @@ post "/select" => sub {
     $sth->finish;
 
     my $data = {
+        x_label => $x_label,
         labels => \@x,
         datasets => \@ys,
     };

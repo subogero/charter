@@ -7,6 +7,7 @@ var $ = {
     idClr: function(id) { return $.clr($.id(id)) },
     date2n: function(d) { return moment(d) / (86400000 * 365.2425) + 1970 },
     n2date: function(n) { return moment((n - 1970) * 86400000 * 365.2425 + 1).format('YYYYMMDD') },
+    y2date: function(y) { return y == null ? null : moment(y.replace(/^(....)(..)(..)$/, "$1-$2-$3")) },
     lpw: 10,
     leftpad: function(s) { s = s.substr(0,$.lpw); var ls = s.length; return ' '.repeat($.lpw-ls) + s },
     resClasses: {},
@@ -47,6 +48,7 @@ var ctx = canvas.getContext('2d');
 var chart = new Chart(ctx, {
     type: 'line',
     data: {
+        x_label: 'foo',
         labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22],
         datasets: [
             { borderColor: 'rgb(255,50,50)', label: "Click", data: [0,2,4,4,4,null,0,2,4,4,4,null,null,0,2,4,null,null,0,2,4,4,4], },
@@ -92,6 +94,13 @@ var chart = new Chart(ctx, {
         responsiveAnimationDuration: 0,
         pan: { enabled: true },
         zoom: { enabled: true, drag: false, mode: 'xy' },
+        scales: {
+            xAxes: [{ scaleLabel: { display: true, labelString: '' } }],
+            yAxes: [
+                { id: 'Y', type: 'linear', position: 'left' },
+                { id: 'T', type: 'linear', position: 'right', gridLines: { borderDash: [5,5] } },
+            ],
+        },
     }
 });
 canvas.ondblclick = function(ev) {
@@ -101,15 +110,18 @@ canvas.ondblclick = function(ev) {
 
 function updateChart(data) {
     $.lpw = 0;
+    chart.options.scales.xAxes[0].scaleLabel.labelString = data.x_label;
     for (i = 0; i < data.datasets.length; i++) {
         var lpw = data.datasets[i].label.length;
         if ($.lpw < lpw) {
             $.lpw = lpw;
         }
+        data.datasets[i].yAxisID = 'Y';
         if (! data.datasets[i].label.match(/_date$/i))
             continue;
+        data.datasets[i].yAxisID = 'T';
         for (j = 0; j < data.datasets[i].data.length; j++) {
-            var d = $.date2n(moment(data.datasets[i].data[j]));
+            var d = $.date2n($.y2date(data.datasets[i].data[j]));
             data.datasets[i].data[j] = d;
         }
     }
