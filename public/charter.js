@@ -66,14 +66,17 @@ var chart = new Chart(ctx, {
     data: {
         x_label: 'foo',
         labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22],
-        datasets: [
-            { borderColor: 'rgb(255,50,50)', label: "Click", data: [0,2,4,4,4,null,0,2,4,4,4,null,null,0,2,4,null,null,0,2,4,4,4], },
-            { borderColor: 'rgb(255,60,40)', label: "Us",    data: [0,0,0,null,2,2,2,null,0,2,4,null,5,null,4,4,4,null,null,2,0], },
-            { borderColor: 'rgb(255,70,30)', label: "To",    data: [null,-1,null,0,2,4,null,2,2,2,null,5,null,5,null,0,2,4,4,4,null,-1,null], },
-            { borderColor: 'rgb(255,80,20)', label: "Show",  data: [null,5,null,-1,null,0,2,4,null,0,2,4,4,4,null,0,0,0,null,2,2,3,4], },
-            { borderColor: 'rgb(255,90,10)', label: "Hide",  data: [-1,null,-1,null,-1,null,-1,null,-1,null,2,0,null,null,-1,null,2,2,null,5,null,5,null], },
-            { borderColor: 'rgb(255,100,0)', label: "Lines", data: [5,null,5,null,5,null,5,null,5,null,2,2,3,4,null,-1,null,-1,null,-1,null,-1,null], },
-        ]
+        datasets: (function() {
+            var __ = null;
+            return [                                              // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
+            { borderColor: 'rgb(255,50,50)', label: "Click", data: [ 0, 2, 4, 4, 4,__, 0, 2, 4, 4, 4,__,__, 0, 2, 4,__,__, 0, 2, 4, 4, 4], },
+            { borderColor: 'rgb(255,60,40)', label: "Us",    data: [ 0, 0, 0,__, 2, 2, 2,__, 0, 2, 4,__, 5,__, 4, 4, 4,__,__, 2, 0,__,__], },
+            { borderColor: 'rgb(255,70,30)', label: "To",    data: [__,-1,__, 0, 2, 4,__, 2, 2, 2,__, 5,__, 5,__, 0, 2, 4, 4, 4,__,-1,__], },
+            { borderColor: 'rgb(255,80,20)', label: "Show",  data: [__, 5,__,-1,__, 0, 2, 4,__, 0, 2, 4, 4, 4,__, 0, 0, 0,__, 2, 2, 3, 4], },
+            { borderColor: 'rgb(255,90,10)', label: "Hide",  data: [-1,__,-1,__,-1,__,-1,__,-1,__, 2, 2, 3, 4,__,__, 2, 2,__, 5,__, 5,__], },
+            { borderColor: 'rgb(255,100,0)', label: "Lines", data: [ 5,__, 5,__, 5,__, 5,__, 5,__, 2, 0,__,__,__,__,__,-1,__,-1,__,-1,__], },
+            ];
+        })(),
     },
     options: {
         elements: {
