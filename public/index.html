@@ -41,6 +41,7 @@
   a.ahelp:link { color: white }
   a.ahelp:visited { color: white }
   code { font-weight: 900 }
+  ul { margin: 0px }
 </style>
 </head>
 
@@ -105,9 +106,10 @@ Change to the file selection field with the UP ARROW key.
 </p>
 <p><code>select</code> Enter a database query, select only.
 The field is a multiline text-area, resizeable by grabbing the lower-right corner.
+The TAB key displays history for the current schema, click any history item to load.
 Ctrl-ENTER runs the query.
 Return to the schema field with the ESC key.
-<p>Input background colours: white for editing, grey for processing, red for error, green for connected, blue for loaded.
+<p>Input background colours:<ul>white: editing, default</ul><ul>grey: processing</ul><ul>red: error</ul><ul>green: connected</ul><ul>blue: loaded</ul>
 </p>
 <h3>Chart</h3>
 <p><code>_date</code> lines are displayed on a separate Y axis on the right side.</p>
