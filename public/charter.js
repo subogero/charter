@@ -59,6 +59,8 @@ function ajax(method, route, data, on200, on500) {
 // Chart on canvas
 var canvas = $.id('chart');
 var ctx = canvas.getContext('2d');
+var yAxis = { id: 'Y', type: 'linear', position: 'left' };
+var tAxis = { id: 'T', type: 'linear', position: 'right', gridLines: { borderDash: [5,5] } };
 var chart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -110,10 +112,7 @@ var chart = new Chart(ctx, {
         zoom: { enabled: true, drag: false, mode: 'xy' },
         scales: {
             xAxes: [{ scaleLabel: { display: true, labelString: '' } }],
-            yAxes: [
-                { id: 'Y', type: 'linear', position: 'left' },
-                { id: 'T', type: 'linear', position: 'right', gridLines: { borderDash: [5,5] } },
-            ],
+            yAxes: [ yAxis ],
         },
     }
 });
@@ -125,20 +124,29 @@ canvas.ondblclick = function(ev) {
 function updateChart(data) {
     $.lpw = 0;
     chart.options.scales.xAxes[0].scaleLabel.labelString = data.x_label;
+    var dateFound = false;
+    var yFound = false;
     for (i = 0; i < data.datasets.length; i++) {
         var lpw = data.datasets[i].label.length;
         if ($.lpw < lpw) {
             $.lpw = lpw;
         }
         data.datasets[i].yAxisID = 'Y';
-        if (! data.datasets[i].label.match(/_date$/i))
+        if (! data.datasets[i].label.match(/_date$/i)) {
+            yFound = true;
             continue;
+        }
+        dateFound = true;
         data.datasets[i].yAxisID = 'T';
         for (j = 0; j < data.datasets[i].data.length; j++) {
             var d = $.date2n($.y2date(data.datasets[i].data[j]));
             data.datasets[i].data[j] = d;
         }
     }
+    chart.options.scales.yAxes = [];
+    if (yFound) chart.options.scales.yAxes.push(yAxis);
+    if (dateFound) chart.options.scales.yAxes.push(tAxis);
+
     chart.options.elements.line.borderWidth = 1;
     chart.data = data;
     chart.update();
