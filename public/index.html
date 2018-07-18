@@ -126,6 +126,16 @@ Dates shall be in YYYYMMDD format, and their column name must end with "_date".
 <h2 style="text-align:center">Hit ESC or click anywhere to close</h2>
 </div>
 
+<script>
+    window.onerror = function(err, url, line) {
+        var file = url.replace(/.*\//, '');
+        var msg = "You may be using Internet Explorer which is not supported. ";
+        msg += "ERROR: ";
+        msg += err;
+        msg += ', at ' + file + ' line ' + line + "<br>\n";
+        document.getElementById('err').innerHTML += msg;
+    };
+</script>
 <script src="moment.min.js"></script>
 <script src="Chart.min.js"></script>
 <script src="hammer.min.js"></script>
