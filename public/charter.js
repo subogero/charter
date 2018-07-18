@@ -1,24 +1,24 @@
 const $ = {
-    id: function(id) { return document.getElementById(id) },
-    tag: function(tag) { return document.createElement(tag) },
-    txt: function(txt) { return document.createTextNode(txt) },
-    appTxt: function(el,txt) { el.appendChild($.txt(txt)) },
-    clr: function(el) { while (1) { const c = el.firstChild; if (!c) { break } el.removeChild(c) } return el },
-    idClr: function(id) { return $.clr($.id(id)) },
-    date2n: function(d) { return moment(d) / (86400000 * 365.2425) + 1970 },
-    n2date: function(n) { return moment((n - 1970) * 86400000 * 365.2425 + 1).format('YYYYMMDD') },
-    y2date: function(y) { return y == null ? null : moment(y.replace(/^(....)(..)(..)$/, "$1-$2-$3")) },
+    id: id => document.getElementById(id),
+    tag: tag => document.createElement(tag),
+    txt: txt => document.createTextNode(txt),
+    appTxt: (el,txt) => { el.appendChild($.txt(txt)) },
+    clr: el => { while (1) { const c = el.firstChild; if (!c) { break } el.removeChild(c) } return el },
+    idClr: id => $.clr($.id(id)),
+    date2n: d => moment(d) / (86400000 * 365.2425) + 1970,
+    n2date: n => moment((n - 1970) * 86400000 * 365.2425 + 1).format('YYYYMMDD'),
+    y2date: y => y == null ? null : moment(y.replace(/^(....)(..)(..)$/, "$1-$2-$3")),
     lpw: 10,
-    leftpad: function(s) { s = s.substr(0,$.lpw); const ls = s.length; return ' '.repeat($.lpw-ls) + s },
+    leftpad: s => { s = s.substr(0,$.lpw); const ls = s.length; return ' '.repeat($.lpw-ls) + s },
     resClasses: {},
-    resClass: function(el) {
+    resClass: (el, ...args) => {
         for (let key of Object.keys($.resClasses)) { el.classList.remove(key) }
-        if (arguments.length < 2) { return }
-        const key = arguments[1];
+        if (args.length == 0) { return }
+        const key = args[0];
         $.resClasses[key] = 1;
         el.classList.add(key);
     },
-    access: function(o, path, op) {
+    access: (o, path, op) => {
         const paths = path.split('.');
         const max = paths.length - 1;
         for (const i = 0; i < max; i++) {
@@ -29,14 +29,14 @@ const $ = {
         o[paths[max]] = op(o[paths[max]]);
         return o[paths[max]];
     },
-    get: function(o, path) { return $.access(o, path, function(x) { return x }) },
-    set: function(o, path, val) { return $.access(o, path, function(x) { return val }) },
+    get: (o, path) => $.access(o, path, x => x),
+    set: (o, path, val) => $.access(o, path, x => val),
     md5: md5_min,
 };
 
 function ajax(method, route, data, on200, on500) {
     const r = new XMLHttpRequest();
-    r.onreadystatechange = function() {
+    r.onreadystatechange = () => {
         if (r.readyState != 4) { return }
         const resp = JSON.parse(r.responseText);
         if (r.status == 200) {
@@ -66,7 +66,7 @@ const chart = new Chart(ctx, {
     data: {
         x_label: 'foo',
         labels: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22],
-        datasets: (function() {
+        datasets: (() => {
             const __ = null;
             return [                                              // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
             { borderColor: 'rgb(255,50,50)', label: "Click", data: [ 0, 2, 4, 4, 4,__, 0, 2, 4, 4, 4,__,__, 0, 2, 4,__,__, 0, 2, 4, 4, 4], },
@@ -97,7 +97,7 @@ const chart = new Chart(ctx, {
             footerFontSize: 10,
             footerFontFamily: 'sans-serif',
             callbacks: {
-                label: function(tooltipItem, data) {
+                label: (tooltipItem, data) => {
                     const key = data.datasets[tooltipItem.datasetIndex].label;
                     let val = tooltipItem.yLabel;
                     if (key.match(/_date$/)) {
@@ -105,7 +105,7 @@ const chart = new Chart(ctx, {
                     }
                     return $.leftpad(key) + '  ' + val;
                 },
-                footer: function(a,d) { return "Zoom: wheel drag double-click" },
+                footer: (a,d) => "Zoom: wheel drag double-click",
             },
         },
         animation: { duration : 0 },
@@ -119,7 +119,7 @@ const chart = new Chart(ctx, {
         },
     }
 });
-canvas.ondblclick = function(ev) {
+canvas.ondblclick = ev => {
     console.log('Canvas double clicked');
     chart.resetZoom();
 };
@@ -169,7 +169,7 @@ function tabExpand(el, el_hits, route, on_enter) {
         ev.preventDefault();
         const method = key == 9 ? "GET" : "POST";
         $.resClass(self, 'processing');
-        ajax(method, route + txt, undefined, function(resp) {
+        ajax(method, route + txt, undefined, resp => {
             if (key == 9) { // TAB
                 self.value = resp.path;
                 for (i = 0; i < resp.hits.length; i++) {
@@ -181,7 +181,7 @@ function tabExpand(el, el_hits, route, on_enter) {
             } else if (key == 13) { // ENTER
                 on_enter(resp);
             }
-        }, function(resp) {
+        }, resp => {
             $.resClass(self, 'failed');
         });
     }
@@ -200,33 +200,31 @@ function getQueries() {
     const query = $.id("select").value;
     const re_query = '^' + query.replace(/[.^$+*?{}()\[\]]/g, "\\$&");
     console.log(re_query);
-    return Object.entries(localStorage).filter(function(x) {
-        return x[0].match('^query-' + schema + '-');
-    }).map(function(x) {
-        return x[1]
-    }).filter(function(x) {
-        return x.match(re_query)
-    });
+    return Object.entries(localStorage).filter(
+        x => x[0].match('^query-' + schema + '-')
+    ).map(
+        x => x[1]
+    ).filter(
+        x => x.match(re_query)
+    );
 }
 
-tabExpand("path", "hits", "/home/", function(resp) {
+tabExpand("path", "hits", "/home/", resp => {
     updateChart(resp.data)
     $.resClass($.id('path'), 'loaded');
     $.resClass($.id('select'));
 });
-$.id("path").onkeyup = function(ev) {
-    const self = this;
+$.id("path").onkeyup = ev => {
     if (ev.keyCode == 40) { $.id("schema").focus() }
 };
 
 let dbh = '';
-tabExpand("schema", "dbhits", "/db/", function(resp) {
+tabExpand("schema", "dbhits", "/db/", resp => {
     dbh = resp.dbh
     $.resClass($.id('schema'), 'connected');
     $.id('select').focus();
 });
-$.id("schema").onkeyup = function(ev) {
-    const self = this;
+$.id("schema").onkeyup = ev => {
     if (ev.keyCode == 38) { $.id("path").focus() }
 };
 
@@ -242,7 +240,7 @@ $.id('select').onkeydown = function(ev) {
             const hit = $.tag('div');
             let query = queries[i];
             $.appTxt(hit, query);
-            hit.onclick = function() {
+            hit.onclick = () => {
                 self.value = query;
                 self.focus();
                 $.clr(hits);
@@ -254,24 +252,23 @@ $.id('select').onkeydown = function(ev) {
         return;
     }
     $.resClass(self, 'processing');
-    ajax('POST', '/select', { schema: dbh, query: self.value }, function(resp) {
+    ajax('POST', '/select', { schema: dbh, query: self.value }, resp => {
         updateChart(resp.data);
         $.resClass(self, 'loaded');
         $.resClass($.id('path'));
         storeQuery();
-    }, function(resp) {
+    }, resp => {
         $.resClass(self, 'failed');
     });
 };
-$.id("select").onkeyup = function(ev) {
-    const self = this;
+$.id("select").onkeyup = ev => {
     if (ev.keyCode == 27) { $.id("schema").focus() }
 };
 
 // Help
-$.id('ahelp').onclick = function(ev) { $.id('help').style.display = 'block' };
-$.id('help').onclick = function(ev) { this.style.display = 'none' };
-document.onkeypress = function(ev) {
+$.id('ahelp').onclick = ev => { $.id('help').style.display = 'block' };
+$.id('help').onclick = ev => { ev.currentTarget.style.display = 'none' };
+document.onkeypress = ev => {
     if (ev.key == 'F1')     { $.id('help').style.display = 'block' }
     if (ev.key == 'Escape') { $.id('help').style.display = 'none' }
 };
