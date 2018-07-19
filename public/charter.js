@@ -129,21 +129,21 @@ function updateChart(data) {
     chart.options.scales.xAxes[0].scaleLabel.labelString = data.x_label;
     let dateFound = false;
     let yFound = false;
-    for (i = 0; i < data.datasets.length; i++) {
-        const lpw = data.datasets[i].label.length;
+    for (const dataset of data.datasets) {
+        const lpw = dataset.label.length;
         if ($.lpw < lpw) {
             $.lpw = lpw;
         }
-        data.datasets[i].yAxisID = 'Y';
-        if (! data.datasets[i].label.match(/_date$/i)) {
+        dataset.yAxisID = 'Y';
+        if (! dataset.label.match(/_date$/i)) {
             yFound = true;
             continue;
         }
         dateFound = true;
-        data.datasets[i].yAxisID = 'T';
-        for (j = 0; j < data.datasets[i].data.length; j++) {
-            const d = $.date2n($.y2date(data.datasets[i].data[j]));
-            data.datasets[i].data[j] = d;
+        dataset.yAxisID = 'T';
+        for (j = 0; j < dataset.data.length; j++) {
+            const d = $.date2n($.y2date(dataset.data[j]));
+            dataset.data[j] = d;
         }
     }
     chart.options.scales.yAxes = [];
@@ -172,10 +172,10 @@ function tabExpand(el, el_hits, route, on_enter) {
         ajax(method, route + txt, undefined, resp => {
             if (key == 9) { // TAB
                 self.value = resp.path;
-                for (i = 0; i < resp.hits.length; i++) {
+                for (const respHit of resp.hits) {
                     if (resp.hits.length == 1) break;
                     const hit = $.tag('div');
-                    $.appTxt(hit, resp.hits[i]);
+                    $.appTxt(hit, respHit);
                     hits.appendChild(hit);
                 }
             } else if (key == 13) { // ENTER
@@ -235,10 +235,8 @@ $.id('select').onkeydown = function(ev) {
     $.clr(hits);
     if (ev.keyCode == 9) {
         ev.preventDefault();
-        const queries = getQueries();
-        for (i = 0; i < queries.length; i++) {
+        for (const query of getQueries()) {
             const hit = $.tag('div');
-            let query = queries[i];
             $.appTxt(hit, query);
             hit.onclick = () => {
                 self.value = query;
