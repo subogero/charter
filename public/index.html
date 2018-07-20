@@ -13,6 +13,8 @@
     padding: 0;
     overflow: hidden;
   }
+  .frameframe { position: absolute; width: 99%; height: 80% }
+  .frame { position: relative; height: 100% }
   input, textarea { outline:none; border:0px }
   textarea { border-bottom: 1px solid #bbb }
   .width_table { display:table; width:100%; position:relative }
@@ -85,8 +87,10 @@
 
 <p id="err" class="failed"></p>
 
-<div>
+<div class="frameframe">
+<div class="frame">
 <canvas id="chart"></canvas>
+</div>
 </div>
 
 <div id="help" class="help">

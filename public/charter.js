@@ -125,6 +125,7 @@ const chart = new Chart(ctx, {
         animation: { duration : 0 },
         hover : { animationDuration : 0 },
         responsiveAnimationDuration: 0,
+        maintainAspectRatio: false,
         pan: { enabled: true },
         zoom: { enabled: true, drag: false, mode: 'xy' },
         scales: {
