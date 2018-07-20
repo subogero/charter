@@ -38,6 +38,14 @@ const $ = {
     get: (o, path) => $.access(o, path, x => x),
     set: (o, path, val) => $.access(o, path, x => val),
     md5: md5_min,
+    txt2html: txt =>
+        txt
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/\n/g, "<br>"),
 };
 
 function ajax(method, route, data, on200, on500) {
@@ -50,7 +58,7 @@ function ajax(method, route, data, on200, on500) {
             $.id('err').innerHTML = '';
         } else {
             if (on500) { on500(resp) }
-            $.id('err').innerHTML = resp.error;
+            $.id('err').innerHTML = $.txt2html(resp.error);
         }
     }
     r.open(method, route, true);
