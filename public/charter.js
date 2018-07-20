@@ -1,3 +1,9 @@
+Object.filter = (o, f) => Object.assign({},
+    ...
+    Object.entries(o)
+    .filter(f)
+    .map(([k,v]) => ({[k]:v}))
+);
 const $ = {
     id: id => document.getElementById(id),
     tag: tag => document.createElement(tag),
@@ -199,14 +205,10 @@ function getQueries() {
     const schema = $.id("schema").value.split('/')[1];
     const query = $.id("select").value;
     const re_query = '^' + query.replace(/[.^$+*?{}()\[\]]/g, "\\$&");
-    console.log(re_query);
-    return Object.entries(localStorage).filter(
-        x => x[0].match('^query-' + schema + '-')
-    ).map(
-        x => x[1]
-    ).filter(
-        x => x.match(re_query)
-    );
+    return Object.values(Object.filter(
+        localStorage,
+        ([k,v]) => k.match(`^query-${schema}-`) && v.match(re_query)
+    ));
 }
 
 tabExpand("path", "hits", "/home/", resp => {
