@@ -39,6 +39,7 @@ const $ = {
     set: (o, path, val) => $.access(o, path, x => val),
     md5: md5_min,
     txt2html: txt =>
+        txt == undefined ? '' :
         txt
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -48,26 +49,30 @@ const $ = {
         .replace(/\n/g, "<br>"),
 };
 
-function ajax(method, route, data, on200, on500) {
-    const r = new XMLHttpRequest();
-    r.onreadystatechange = () => {
-        if (r.readyState != 4) { return }
-        const resp = JSON.parse(r.responseText);
-        if (r.status == 200) {
-            if (on200) { on200(resp) }
-            $.id('err').innerHTML = '';
-        } else {
-            if (on500) { on500(resp) }
-            $.id('err').innerHTML = $.txt2html(resp.error);
+function http(route, method, data) {
+    if (method == undefined) method = 'GET';
+    const body = data == undefined ? [] : [ JSON.stringify(data) ];
+    return new Promise((resolve, reject) => {
+        const r = new XMLHttpRequest();
+        r.open(method, route, true);
+        r.onload = () => {
+            const resp = {};
+            try { Object.assign(resp, JSON.parse(r.responseText)) }
+            catch(err) {}
+            if (r.status >= 200 && r.status < 300) {
+                $.id('err').innerHTML = '';
+                resolve(resp);
+            } else {
+                $.id('err').innerHTML = $.txt2html(resp.error);
+                reject(Object.assign(resp, { status: r.status, statusText: r.statusText }));
+            }
+        };
+        r.onerror = () => {
+            reject({ error: 'Network error' });
         }
-    }
-    r.open(method, route, true);
-    if (data) {
-        r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-        r.send(JSON.stringify(data));
-    } else {
-        r.send();
-    }
+        if (data) r.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        r.send(...body);
+    });
 }
 
 // Chart on canvas
@@ -184,7 +189,8 @@ function tabExpand(el, el_hits, route, on_enter) {
         ev.preventDefault();
         const method = key == 9 ? "GET" : "POST";
         $.resClass(self, 'processing');
-        ajax(method, route + txt, undefined, resp => {
+        http(route + txt, method)
+        .then(resp => {
             if (key == 9) { // TAB
                 self.value = resp.path;
                 for (const respHit of resp.hits) {
@@ -196,7 +202,8 @@ function tabExpand(el, el_hits, route, on_enter) {
             } else if (key == 13) { // ENTER
                 on_enter(resp);
             }
-        }, resp => {
+        })
+        .catch(resp => {
             $.resClass(self, 'failed');
         });
     }
@@ -261,12 +268,14 @@ $.id('select').onkeydown = function(ev) {
         return;
     }
     $.resClass(self, 'processing');
-    ajax('POST', '/select', { schema: dbh, query: self.value }, resp => {
+    http('/select', 'POST', { schema: dbh, query: self.value })
+    .then(resp => {
         updateChart(resp.data);
         $.resClass(self, 'loaded');
         $.resClass($.id('path'));
         storeQuery();
-    }, resp => {
+    })
+    .catch(resp => {
         $.resClass(self, 'failed');
     });
 };
