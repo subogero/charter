@@ -18,7 +18,7 @@
   input, textarea { outline:none; border:0px }
   textarea { border-bottom: 1px solid #bbb }
   .width_table { display:table; width:100%; position:relative }
-  .width_cell { display:table-cell; vertical-align: top; padding-top: 2px }
+  .width_cell { display:table-cell; vertical-align: top; width: 1px; padding-top: 2px; white-space: nowrap }
   .width_rest { display:table-cell; width:99% }
   .hits {
     visibility: visible;
@@ -40,6 +40,9 @@
     display: none;
   }
   .ahelp { background-color: rgba(0,0,0,0.7) }
+  .hidden { width: 0px; height: 0px; background-color: rgba(0,0,0,0) }
+  button.ahelp { color: white; border: 0px }
+  input[type=text].ahelp { color: #aaf; border: 0px; }
   a.ahelp:link { color: white }
   a.ahelp:visited { color: white }
   code { font-weight: 900 }
@@ -49,27 +52,23 @@
 
 <body>
 
+<div class="ahelp" id="menu">
+  <button id="ahelp" class="ahelp" type="button">Help F1</button>
+  <button id="clink" class="ahelp" type="button">Copy Chart Permalink</button>
+  <input id="plink" class="hidden ahelp" type="text"></input>
+</div>
+
 <div class="width_table">
-<div id="hits" class="hits"></div>
-<label
-    for="path"
-    class="width_cell"
-    style="width:1px"
-><a
-    id="ahelp"
-    class="ahelp"
-    title="Help F1"
-    href="javascript:void(0)"
->?</a>/home/</label>
-<input type="text" id="path" autofocus="true"
-    class="width_rest"
-    placeholder="Server path to CSV file. Tab to expand, Enter to load. Down arrow to DB schema field"
-></input>
+  <div id="hits" class="hits"></div>
+  <label for="path" class="width_cell">&nbsp;/home/</label>
+  <input type="text" id="path" autofocus="true" class="width_rest"
+      placeholder="Server path to CSV file. Tab to expand, Enter to load. Down arrow to DB schema field">
+  </input>
 </div>
 
 <div class="width_table">
 <div id="dbhits" class="hits"></div>
-<label for="schema" class="width_cell" style="width:1px">schema&nbsp;</label>
+<label for="schema" class="width_cell">schema&nbsp;</label>
 <input id="schema" type="text"
     class="width_rest"
     placeholder="DB ENV/schema. Tab to expand, Enter to connect and jump to query field. Up arrow to CSV path field"
@@ -78,7 +77,7 @@
 
 <div class="width_table">
 <div id="qhits" class="hits"></div>
-<label for="select" class="width_cell" style="width:1px">select&nbsp;</label>
+<label for="select" class="width_cell">select&nbsp;</label>
 <textarea id="select"
     class="width_rest"
     placeholder="Select query. Tab for history, Ctrl-Enter to execute. Esc to return to schema field"
@@ -126,6 +125,10 @@ Double-click to reset zoom/pan and shown lines.
 <h3>Data</h3>
 <p>The first column becomes the X axis. The rest of the columns are shown as Y values.
 Dates shall be in YYYYMMDD format, and their column name must end with "_date".
+</p>
+<h3>Collaboration</h3>
+<p>The <code>Copy Chart Permalink</code> button copies the permalink to the current chart to the clipboard,
+enabling sharing it with others.
 </p>
 <h2 style="text-align:center">Hit ESC or click anywhere to close</h2>
 </div>
