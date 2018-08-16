@@ -6,7 +6,7 @@ var $ = {
     clr: function(el) { while (1) { var c = el.firstChild; if (!c) { break } el.removeChild(c) } return el },
     idClr: function(id) { return $.clr($.id(id)) },
 };
- 
+
 // Chart on canvas
 var canvas = $.id('chart');
 var ctx = canvas.getContext('2d');
@@ -56,11 +56,22 @@ $.id("path").onkeydown = function(ev) {
     var r = new XMLHttpRequest();
     r.onreadystatechange = function() {
         if (r.readyState == 4 && r.status == 200) {
-            var data = JSON.parse(r.responseText);
+            var resp = JSON.parse(r.responseText);
             if (key == 9) { // TAB
-                self.value = data.path;
-            } else if (data.data) { // ENTER
-                chart.data = data.data;
+                self.value = resp.path;
+            } else if (resp.data) { // ENTER
+                var data = resp.data;
+                for (i = 0; i < data.datasets.length; i++) {
+                    if (! data.datasets[i].label.match(/_date$/i))
+                        continue;
+                    for (j = 0; j < data.datasets[i].data.length; j++) {
+                        var d =
+                            moment(data.datasets[i].data[j]) / (86400000 * 365.25)
+                            + 1970;
+                        data.datasets[i].data[j] = d;
+                    }
+                }
+                chart.data = resp.data;
                 chart.update();
             }
         }
