@@ -29,23 +29,21 @@ var chart = new Chart(ctx, {
                 tension: 0,
                 backgroundColor: 'rgba(255,255,255,0)',
             },
-            point: {
-                radius: 0,
-            },
+            point: { radius: 0 },
         },
         tooltips: { mode: 'x' },
         animation: { duration : 0 },
         hover : { animationDuration : 0 },
         responsiveAnimationDuration: 0,
         pan: { enabled: true },
-        zoom: { enabled: true },
+        zoom: { enabled: true, drag: false, mode: 'xy' },
     }
 });
 canvas.ondblclick = function(ev) {
     console.log('Canvas double clicked');
     chart.resetZoom();
 };
- 
+
 // File input field
 $.id("path").onkeydown = function(ev) {
     var key = ev.keyCode;
