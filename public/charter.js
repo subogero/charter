@@ -189,6 +189,25 @@ function updateChart(data) {
     console.log(_.lpw);
 }
 
+function data2CSV(data) {
+    let csv = data.x_label + ',';
+    csv += data.datasets.map(e => e.label).join(',') + "\n";
+    for (i = 0; i < data.labels.length; i++) {
+        csv += data.labels[i] + ',';
+        csv += data.datasets.map(e => {
+            const cell = e.data[i];
+            const col = e.label;
+            if (cell == null) return '';
+            if (typeof cell == 'string') return cell;
+            if (isNaN(cell)) return '';
+            if (col.match('_date$')) return _.n2date(cell);
+            return cell.toString();
+        }).join(',');
+        csv += "\n";
+    }
+    return csv;
+}
+
 function tabExpand(el, el_hits, route, on_enter) {
     _.id(el).onkeydown = function(ev) {
         const self = this;
@@ -346,5 +365,17 @@ window.onload = ev => {
     _.id('clink').onclick = function(ev) {
         _.id('plink').select();
         document.execCommand('copy');
-    }
+    };
+    _.id('dlink').onclick = ev => {
+        const csv = data2CSV(chart.data);
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = _.tag('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'charter.csv');
+        link.style = "visibility:hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 };
