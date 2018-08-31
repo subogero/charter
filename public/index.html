@@ -28,8 +28,7 @@
   }
   .hits div { border-bottom: 1px solid #bbb }
   .processing { background-color: #ddd }
-  .loaded { background-color: #cef }
-  .connected { background-color: #afd }
+  .loaded { background-color: #afd }
   .failed { background-color: #fcd }
   .help {
     background-color: rgba(0,0,0,0.8);
@@ -53,10 +52,9 @@
 <body>
 
 <div class="ahelp" id="menu">
-  <button id="ahelp" class="ahelp" type="button">Help F1</button>
-  <button id="clink" class="ahelp" type="button">Copy Chart Permalink</button>
+  <button id="ahelp" class="ahelp" type="button">Help</button>
+  <a id="plink" class="ahelp">Chart Permalink</a>
   <button id="dlink" class="ahelp" type="button">Save Chart as CSV</button>
-  <input id="plink" class="hidden ahelp" type="text"></input>
 </div>
 
 <div class="width_table">
@@ -113,7 +111,7 @@ The field is a multiline text-area, resizeable by grabbing the lower-right corne
 The TAB key displays history for the current schema, click any history item to load.
 Ctrl-ENTER runs the query.
 Return to the schema field with the ESC key.
-<p>Input background colours:<ul>white: editing, default</ul><ul>grey: processing</ul><ul>red: error</ul><ul>green: connected</ul><ul>blue: loaded</ul>
+<p>Input background colours:<ul>white: editing, default</ul><ul>grey: processing</ul><ul>red: error</ul><ul>green: loaded</ul>
 </p>
 <h3>Chart</h3>
 <p><code>_date</code> lines are displayed on a separate Y axis on the right side.</p>
@@ -128,10 +126,9 @@ Double-click to reset zoom/pan and shown lines.
 Dates shall be in YYYYMMDD format, and their column name must end with "_date".
 </p>
 <h3>Collaboration</h3>
-<p>The <code>Copy Chart Permalink</code> button copies the permalink to the current chart to the clipboard,
-enabling sharing it with others.
-</p>
-<h2 style="text-align:center">Hit ESC or click anywhere to close</h2>
+<p>The <code>Chart Permalink</code> link enables sharing the current chart with others.</p>
+<p>The <code>Save Chart as CSV</code> button allows downloading the current chart's data in CSV format.</p>
+<h2 style="text-align:center">Click anywhere to close Help</h2>
 </div>
 
 <script>

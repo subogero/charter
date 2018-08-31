@@ -261,7 +261,7 @@ function getQueries() {
 
 // path input field
 function path_load(resp) {
-    _.id('plink').value =
+    _.id('plink').href =
         window.location.origin +
         "?path=" + encodeURI(_.id("path").value);
     updateChart(resp.data)
@@ -277,7 +277,7 @@ _.id("path").onkeyup = ev => {
 let dbh = '';
 function schema_load(resp) {
     dbh = resp.dbh
-    _.resClass(_.id('schema'), 'connected');
+    _.resClass(_.id('schema'), 'loaded');
     _.id('select').focus();
 }
 tabExpand("schema", "dbhits", "/db/", schema_load);
@@ -288,10 +288,9 @@ _.id("schema").onkeyup = ev => {
 // select input field
 function send_select(self) {
     _.resClass(self, 'processing');
-    _.idClr('plink');
     http('/select', 'POST', { schema: dbh, query: self.value })
     .then(resp => {
-        _.id('plink').value =
+        _.id('plink').href =
             window.location.origin +
             "?schema=" + encodeURIComponent(_.id("schema").value) +
             "&select=" + encodeURIComponent(_.id("select").value);
@@ -335,10 +334,6 @@ _.id("select").onkeyup = ev => {
 // Help
 _.id('ahelp').onclick = ev => { _.id('help').style.display = 'block' };
 _.id('help').onclick = ev => { ev.currentTarget.style.display = 'none' };
-document.onkeypress = ev => {
-    if (ev.key == 'F1')     { _.id('help').style.display = 'block' }
-    if (ev.key == 'Escape') { _.id('help').style.display = 'none' }
-};
 
 // Permalink support
 window.onload = ev => {
@@ -362,10 +357,6 @@ window.onload = ev => {
             send_select(_.id('select'));
         }
     }
-    _.id('clink').onclick = function(ev) {
-        _.id('plink').select();
-        document.execCommand('copy');
-    };
     _.id('dlink').onclick = ev => {
         const csv = data2CSV(chart.data);
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
